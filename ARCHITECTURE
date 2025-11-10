@@ -1,0 +1,171 @@
+
+E-COM Website: Technical Architecture (v2
+)
+1. Overview
+This document outlines the architecture for a simple, responsive e-commerce SPA
+.
+Built as a single
+HTML file, it simulates a multi-page experience by dynamically showing and hiding content sections.
+Core functionalities include:
+A product catalog
+A persistent shopping cart
+A mock "My Orders" panel
+A multi-step checkout flow (cart, payment, confirmation)
+A customer review submission form
+2. Tech Stack
+Frontend (UI)
+: HTML & Tailwind CSS
+Business Logic & State: Vanilla JavaScript
+Data (Backend Simulation)
+: Hardcoded JavaScript c
+onst arrays
+Assets: Inline Base64-encoded SVGs for reliable, dependency-free graphics
+3. Rationale
+This stack was chosen for its simplicity and zero-setup deployment (runs in any browser)
+. Inline SVGs
+guarantee asset reliability, and c
+onst arrays simulate a lightweight backend.
+JavaScript manages all state, which is split into:
+1. Data State: A
+cart array, persisted in lo
+calStorage.
+2. UI State: Helper functions (showMainStore()
+simulate page navigation.
+, etc.
+) toggle the visibility of <div> sections to
+4.
+Architecture Breakdown
+1. HTML Structure
+The <b
+ody> contains a persistent <header> and several primary content <div> wrappers: #main-
+c
+ontent (products, reviews, footer)
+, #payment-page , and #
+c
+onfirmation-page. UI state functions
+hide or show these wrappers as needed.
+Additional modal <div> elements (
+#
+cart-modal , #orders-
+modal , #loading-overlay) are used for slide-out panels and overlays.
+2. JavaScript Logic (
+<script>
+)
+Data:
+c
+onst PRODUCTS and c
+onst ORDERS arrays define all site data.
+State: let cart = [] holds the live shopping cart.
+https://gemini.google.com/app/b96ecac705694e4e 1/3
+11/10/25, 1:50 PM Google Gemini
+Initialization (On Page Load)
+: loadCartFromStorage() runs first, followed by functions to
+render products (renderProducts())
+, the cart (renderCart())
+, orders (renderOrders())
+, and
+the review form dropdown (populateReviewProducts()) to build the initial UI.
+Core Functions:
+Rendering: A set of render...() functions (e.g.
+, renderProducts()
+over the data/state arrays to generate and inject HTML.
+, renderCart())
+loop
+State & Actions: Functions like addToCart()
+, updateCartQuantity()
+, and
+removeFromCart() modify the cart array. saveCartToStorage() persists these changes
+to lo
+calStorage.
+UI Management: toggle...Modal() functions handle the slide-out panels.
+showMainStore()
+, showPaymentPage()
+, and showConfirmationPage() manage the main
+"page" visibility.
+Event Listeners:
+Event delegation is used on #product-grid and #
+cart-items to manage clicks on dynamic
+content.
+Listeners on header buttons and forms trigger the modal, review, and checkout functions.
+Checkout Flow: A series of click handlers guides the user from #
+chec
+kout-
+showPaymentPage()
+>
+-
+#pay-now-
+b
+utton -
+> showConfirmationPage()
+-
+showMainStore()
+, clearing the cart after the simulated payment.
+b
+utton -
+>
+>
+5. Flowcharts
+High-Level User Journey
+graph TD
+B -->
+(Start: User visits site) --> B[View Product Catalog];
+C(Clic
+k '
+Add to Cart');
+C --> D(View Cart);
+D --> B;
+D --> E(Clic
+k 'Pro
+ceed to Chec
+E --> F[Fill Payment Details];
+F --> G(Clic
+k 'Pay Now');
+G --> H(Show 'Order Successful');
+kout');
+H --> B;
+F --> B(Clic
+B --> I(Clic
+k 'Go Bac
+k');
+k 'My Orders');
+I --> B;
+B --> J[Write a Review];
+J --> B;
+A
+"Add to Cart" Application Logic
+graph TD
+(User clic
+ks '
+Add to Cart'
+B -->
+C{Get product ID}
+;
+C --> D{Chec
+k 'cart' array for item?}
+;
+D -- Yes --> E[In
+crement quantity];
+D -- No --> F[Add new o
+ject to 'cart' array];
+b
+b
+utton) --> B[Event listener captures clic
+k];
+https://gemini.google.com/app/b96ecac705694e4e 2/3
+A
+11/10/25, 1:50 PM Google Gemini
+E --> G[[renderCart()]];
+F --> G;
+G --> H(Update Cart UI);
+G --> I(Update Header Count);
+G --> J[[saveCartToStorage()]];
+J --> K([lo
+calStorage]);
+G --> L[[showAddedToCartMessage()]];
+L --> M(Show '
+Added!' on
+utton);
+b
+M --> N(Open
+cart modal);
+https://gemini.google.com/app/b96ecac705694e4e 3/3
