@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-COM</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                        playfair: ['Playfair Display', 'serif']
+                    },
+                    colors: {
+                        // Royal Maroon theme
+                        primary: '#8C1D40', // Deep maroon
+                        secondary: '#D4AF37', // Gold accent
+                        background: '#FDF8F8', // Very light, warm off-white
+                        card: '#FFFFFF',
+                        text: '#333333',
+                        lighttext: '#6B7280'
+                    }
+                },
+            },
+        };
+    </script>
+    <style>
+        /* Custom scrollbar for cart */
+        #cart-items::-webkit-scrollbar,
+        #orders-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        #cart-items::-webkit-scrollbar-track,
+        #orders-list::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+        #cart-items::-webkit-scrollbar-thumb,
+        #orders-list::-webkit-scrollbar-thumb {
+            background: #d1d5db; /* gray-300 */
+            border-radius: 10px;
+        }
+        #cart-items::-webkit-scrollbar-thumb:hover,
+        #orders-list::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af; /* gray-400 */
+        }
+
+        /* Clamp long descriptions */
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;  
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-background font-inter antialiased text-text">
+
+    <!-- Header -->
+    <header class="bg-card shadow-lg sticky top-0 z-10">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <h1 class="text-3xl md:text-4xl font-playfair font-bold text-primary">
+                <a href="#">E-COM</a>
+            </h1>
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <!-- My Orders Button -->
+                <button id="orders-button" class="relative flex items-center p-3 rounded-full text-lighttext hover:bg-gray-100 hover:text-primary focus:outline-none focus:ring-primary focus:ring-offset-2 transition-all duration-200">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </button>
+                <!-- Cart Button -->
+                <button id="cart-button" class="relative flex items-center p-3 rounded-full text-lighttext hover:bg-gray-100 hover:text-primary focus:outline-none focus:ring-primary focus:ring-offset-2 transition-all duration-200">
+                    <!-- Cart Icon -->
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <!-- Cart Count Badge -->
+                    <span id="cart-count" class="absolute -top-1 -right-1 bg-secondary text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center border-2 border-card">
+                        0
+                    </span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content (Products, Reviews) -->
+    <div id="main-content">
+        <!-- Product Grid -->
+        <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
+            <h2 class="text-4xl font-playfair font-bold text-center mb-10 text-primary">Discover Our Products</h2>
+            <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+                <!-- Product cards will be injected here by JavaScript -->
+            </div>
+        </main>
+
+        <!-- Review Section -->
+        <section id="review-section" class="bg-card py-16">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-2xl">
+                <h2 class="text-3xl font-playfair font-bold text-center mb-8 text-primary">Leave a Review</h2>
+                <form id="review-form" class="space-y-6">
+                    <div>
+                        <label for="review-product-select" class="block text-sm font-medium text-text mb-1">Product</label>
+                        <select id="review-product-select" name="product" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary">
+                            <option value="">Select a product...</option>
+                            <!-- Products will be populated by JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="review-rating" class="block text-sm font-medium text-text mb-1">Rating</label>
+                        <select id="review-rating" name="rating" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary">
+                            <option value="">Select a rating...</option>
+                            <option value="5">5 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="3">3 Stars</option>
+                            <option value="2">2 Stars</option>
+                            <option value="1">1 Star</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="review-comment" class="block text-sm font-medium text-text mb-1">Comment</label>
+                        <textarea id="review-comment" name="comment" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" placeholder="Share your thoughts..."></textarea>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="w-full max-w-xs bg-primary text-white py-3 px-6 rounded-lg font-semibold text-lg hover:bg-opacity-90 transition-colors shadow-lg shadow-primary/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                            Submit Review
+                        </button>
+                    </div>
+                    <div id="review-message" class="text-center text-green-600 font-semibold mt-4"></div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-gray-300 py-10">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8 mb-4">
+                    <a href="mailto:ecom.gmail.com" class="hover:text-white transition-colors">ecom.gmail.com</a>
+                    <span class="hidden sm:inline">|</span>
+                    <span>Customer Care: 999999</span>
+                </div>
+                <p class="font-semibold text-lg text-white">Made with ❤️ in India</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Payment Page (Hidden by default) -->
+    <div id="payment-page" class="hidden">
+        <div class="container mx-auto max-w-lg px-4 py-16">
+            <h2 class="text-4xl font-playfair font-bold text-center mb-10 text-primary">Complete Your Payment</h2>
+            <div class="bg-card p-8 rounded-xl shadow-xl">
+                <form id="payment-form" class="space-y-6">
+                    <div>
+                        <label for="card-name" class="block text-sm font-medium text-text mb-1">Name on Card</label>
+                        <input type="text" id="card-name" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" value="Ananya Sharma">
+                    </div>
+                    <div>
+                        <label for="card-number" class="block text-sm font-medium text-text mb-1">Card Number</label>
+                        <input type="text" id="card-number" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" value="4242 4242 4242 4242">
+                    </div>
+                    <div class="flex space-x-4">
+                        <div class="flex-1">
+                            <label for="card-expiry" class="block text-sm font-medium text-text mb-1">Expiry (MM/YY)</label>
+                            <input type="text" id="card-expiry" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" value="12/28">
+                        </div>
+                        <div class="flex-1">
+                            <label for="card-cvc" class="block text-sm font-medium text-text mb-1">CVC</label>
+                            <input type="text" id="card-cvc" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary" value="123">
+                        </div>
+                    </div>
+                    <div class="pt-4 space-y-4">
+                        <button type="submit" id="pay-now-button" class="w-full bg-primary text-white py-3 px-6 rounded-lg font-semibold text-lg hover:bg-opacity-90 transition-colors shadow-lg shadow-primary/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                            Pay Now (Total: ₹<span id="payment-total">0.00</span>)
+                        </button>
+                        <button type="button" id="payment-back-button" class="w-full bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                            Go Back to Store
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Page (Hidden by default) -->
+    <div id="confirmation-page" class="hidden">
+        <div class="container mx-auto max-w-lg px-4 py-16 text-center">
+            <div class="bg-card p-10 rounded-xl shadow-xl">
+                <svg class="w-24 h-24 text-green-500 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <h2 class="text-4xl font-playfair font-bold text-center mb-4 text-green-600">Order Successful!</h2>
+                <p class="text-lg text-lighttext mb-8">Thank you for your purchase. A confirmation email has been sent to you.</p>
+                <p class="text-md text-lighttext">You will be redirected to the store shortly.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar (Modal) -->
+    <div id="cart-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden">
+        <!-- Cart Panel -->
+        <div id="cart-panel" class="absolute top-0 right-0 w-full max-w-sm md:max-w-md h-full bg-card shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+            
+            <!-- Cart Header -->
+            <div class="flex justify-between items-center p-4 md:p-6 border-b border-gray-100 bg-gray-50">
+                <h2 class="text-2xl font-playfair font-semibold text-primary">Your Cart</h2>
+                <button id="close-cart-button" class="text-lighttext hover:text-primary p-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Cart Items -->
+            <div id="cart-items" class="flex-grow p-4 md:p-6 overflow-y-auto space-y-5">
+                <!-- Cart items will be injected here by JavaScript -->
+            </div>
+
+            <!-- Cart Footer -->
+            <div class="p-4 md:p-6 border-t border-gray-100 bg-gray-50">
+                <!-- Address Section -->
+                <div class="mb-4">
+                    <label for="shipping-address" class="block text-sm font-medium text-text mb-1">Shipping Address</label>
+                    <input type="text" id="shipping-address" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="Enter your address...">
+                </div>
+                <!-- Coupon Section -->
+                <div class="mb-4">
+                    <label for="coupon-code" class="block text-sm font-medium text-text mb-1">Coupon Code</label>
+                    <div class="flex">
+                        <input type="text" id="coupon-code" class="flex-grow p-2 border border-gray-300 rounded-l-md" placeholder="ECOMGOLD">
+                        <button class="bg-gray-700 text-white px-4 rounded-r-md font-semibold text-sm hover:bg-gray-800">Apply</button>
+                    </div>
+                </div>
+                <!-- Total Section -->
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-xl font-semibold text-text">Subtotal:</span>
+                    <span id="cart-total" class="text-2xl font-bold text-primary">₹0.00</span>
+                </div>
+                <button id="checkout-button" class="w-full bg-primary text-white py-3 rounded-lg font-semibold text-lg hover:bg-opacity-90 transition-colors shadow-lg shadow-primary/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                    Proceed to Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Sidebar (Modal) -->
+    <div id="orders-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden">
+        <!-- Orders Panel -->
+        <div id="orders-panel" class="absolute top-0 right-0 w-full max-w-sm md:max-w-md h-full bg-card shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+            
+            <!-- Orders Header -->
+            <div class="flex justify-between items-center p-4 md:p-6 border-b border-gray-100 bg-gray-50">
+                <h2 class="text-2xl font-playfair font-semibold text-primary">Your Orders</h2>
+                <button id="close-orders-button" class="text-lighttext hover:text-primary p-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Orders List -->
+            <div id="orders-list" class="flex-grow p-4 md:p-6 overflow-y-auto space-y-5 bg-background">
+                <!-- Order items will be injected here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black/70 z-50 flex-col flex items-center justify-center hidden">
+        <svg class="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        <p class="text-white text-lg font-semibold" id="loading-message">Processing Payment...</p>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 1. DATA (Backend Simulation) ---
+            const PRODUCTS = [
+                {
+                    id: 1,
+                    name: 'Digital Chrono Watch',
+                    price: 14999.00,
+                    image: 'https://placehold.co/600x600/8C1D40/FFFFFF?text=Digital+Watch&font=playfair',
+                    description: 'A timeless timepiece crafted with precision and style. Perfect for any occasion.',
+                    rating: 0,
+                    ratingCount: 0
+                },
+                {
+                    id: 2,
+                    name: 'Premium Wireless Earbuds',
+                    price: 7550.00,
+                    image: 'https://placehold.co/600x600/8C1D40/FFFFFF?text=Earbuds&font=playfair',
+                    description: 'Immersive sound quality with comfortable fit and long-lasting battery life.',
+                    rating: 0,
+                    ratingCount: 0
+                },
+                {
+                    id: 3,
+                    name: 'Stylish Urban Backpack',
+                    price: 8999.00,
+                    image: 'https://placehold.co/600x600/8C1D40/FFFFFF?text=Backpack&font=playfair',
+                    description: 'Designed for the modern adventurer, offering both durability and sleek design.',
+                    rating: 0,
+                    ratingCount: 0
+                },
+                {
+                    id: 4,
+                    name: 'Ceramic Insulated Mug',
+                    price: 2499.00,
+                    image: 'https://placehold.co/600x600/8C1D40/FFFFFF?text=Mug&font=playfair',
+                    description: 'Keep your beverages hot or cold for hours with this elegantly designed mug.',
+                    rating: 0,
+                    ratingCount: 0
+                },
+                {
+                    id: 5,
+                    name: 'Sleek LED Desk Lamp',
+                    price: 6500.00,
+                    image: 'https://placehold.co/600x600/8C1D40/FFFFFF?text=Lamp&font=playfair',
+                    description: 'Modern lighting solution with adjustable brightness and color temperature.',
+                    rating: 0,
+                    ratingCount: 0
+                },
+                {
+                    id: 6,
+                    name: 'Advanced Fitness Tracker',
+                    price: 12000.00,
+                    image: 'https://placehold.co/600x600/8C1D40/FFFFFF?text=Fitness+Tracker&font=playfair',
+                    description: 'Monitor your health and activity with cutting-edge sensors and smart notifications.',
+                    rating: 0,
+                    ratingCount: 0
+                },
+                {
+                    id: 7,
+                    name: 'Handcrafted Leather Wallet',
+                    price: 5500.00,
+                    image: 'https://placehold.co/600x600/8C1D40/FFFFFF?text=Wallet&font=playfair',
+                    description: 'Premium leather, meticulously stitched for durability and a classic look.',
+                    rating: 0,
+                    ratingCount: 0
+                },
+                {
+                    id: 8,
+                    name: 'Noise-Cancelling Headphones',
+                    price: 19999.00,
+                    image: 'https://placehold.co/600x600/8C1D40/FFFFFF?text=Headphones&font=playfair',
+                    description: 'Immerse yourself in pure audio with superior noise cancellation and comfort.',
+                    rating: 0,
+                    ratingCount: 0
+                }
+            ];
+
+            // Mock data for past orders
+            const ORDERS = [
+                {
+                    id: 'A1234',
+                    date: 'November 08, 2025',
+                    status: 'Arriving Soon',
+                    total: 8999.00,
+                    items: [
+                        { name: 'Stylish Urban Backpack', image: 'https://placehold.co/100x100/8C1D40/FFFFFF?text=Backpack&font=playfair' }
+                    ]
+                },
+                {
+                    id: 'B5678',
+                    date: 'November 05, 2025',
+                    status: 'Delivered',
+                    total: 22549.00,
+                    items: [
+                        { name: 'Digital Chrono Watch', image: 'https://placehold.co/100x100/8C1D40/FFFFFF?text=Watch&font=playfair' },
+                        { name: 'Premium Wireless Earbuds', image: 'https://placehold.co/100x100/8C1D40/FFFFFF?text=Earbuds&font=playfair' }
+                    ]
+                }
+            ];
+
+            // --- 2. STATE ---
+            let cart = [];
+
+            // --- 3. DOM SELECTORS ---
+            const productGrid = document.getElementById('product-grid');
+            const cartButton = document.getElementById('cart-button');
+            const cartModal = document.getElementById('cart-modal');
+            const cartPanel = document.getElementById('cart-panel');
+            const closeCartButton = document.getElementById('close-cart-button');
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartCountBadge = document.getElementById('cart-count');
+            const cartTotalEl = document.getElementById('cart-total');
+            const checkoutButton = document.getElementById('checkout-button');
+            
+            const reviewProductSelect = document.getElementById('review-product-select');
+            const reviewForm = document.getElementById('review-form');
+            const reviewMessage = document.getElementById('review-message');
+
+            // New DOM Selectors for Orders
+            const ordersButton = document.getElementById('orders-button');
+            const ordersModal = document.getElementById('orders-modal');
+            const ordersPanel = document.getElementById('orders-panel');
+            const closeOrdersButton = document.getElementById('close-orders-button');
+            const ordersListContainer = document.getElementById('orders-list');
+
+            // Page Sections
+            const mainContent = document.getElementById('main-content');
+            const paymentPage = document.getElementById('payment-page');
+            const confirmationPage = document.getElementById('confirmation-page');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const loadingMessage = document.getElementById('loading-message');
+
+            // Payment Page Elements
+            const paymentTotalEl = document.getElementById('payment-total');
+            const paymentForm = document.getElementById('payment-form');
+            const payNowButton = document.getElementById('pay-now-button');
+            const paymentBackButton = document.getElementById('payment-back-button');
+
+            // --- 4. CORE FUNCTIONS ---
+
+            /**
+             * Renders all products to the product grid.
+             */
+            function renderProducts() {
+                productGrid.innerHTML = ''; // Clear existing products
+                PRODUCTS.forEach(product => {
+                    const productCard = `
+                        <div class="bg-card rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group">
+                            <img src="${product.image}" alt="${product.name}" class="w-full h-64 object-cover group-hover:opacity-90 transition-opacity duration-300" onerror="this.src='https://placehold.co/600x600/8C1D40/FFFFFF?text=Image+Error&font=playfair'">
+                            <div class="p-5">
+                                <h3 class="text-xl font-semibold text-text mb-2 truncate">${product.name}</h3>
+                                <!-- Star Rating -->
+                                <div class="flex items-center mb-2">
+                                    <div class="flex text-gray-300">
+                                        ${generateStars(product.rating)}
+                                    </div>
+                                    <span class="text-xs text-lighttext ml-2">(${product.ratingCount} reviews)</span>
+                                </div>
+                                <p class="text-sm text-lighttext mb-3 line-clamp-2">${product.description}</p>
+                                <p class="text-2xl font-bold text-primary mb-4">₹${product.price.toFixed(2)}</p>
+                                <button 
+                                    class="add-to-cart-btn w-full bg-primary text-white py-3 px-4 rounded-lg font-semibold hover:bg-opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                    data-id="${product.id}"
+                                >
+                                    Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    productGrid.innerHTML += productCard;
+                });
+            }
+
+            /**
+             * Renders the current cart state to the cart modal.
+             */
+            function renderCart() {
+                cartItemsContainer.innerHTML = ''; // Clear existing cart items
+                let total = 0;
+                let totalItems = 0;
+
+                if (cart.length === 0) {
+                    cartItemsContainer.innerHTML = `
+                        <div class="text-center py-10">
+                            <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                            </svg>
+                            <h3 class="mt-4 text-lg font-medium text-text">Your cart is empty</h3>
+                            <p class="mt-1 text-sm text-lighttext">Add some exciting products to get started!</p>
+                        </div>
+                    `;
+                } else {
+                    cart.forEach(cartItem => {
+                        const product = PRODUCTS.find(p => p.id === cartItem.id);
+                        if (!product) return; // Skip if product not found
+
+                        const itemTotal = product.price * cartItem.quantity;
+                        total += itemTotal;
+                        totalItems += cartItem.quantity;
+
+                        const cartItemEl = `
+                            <div class="flex items-center space-x-4 p-3 rounded-lg bg-gray-50 border border-gray-100 shadow-sm">
+                                <img src="${product.image}" alt="${product.name}" class="w-20 h-20 object-cover rounded-md shadow-sm" onerror="this.src='https://placehold.co/100x100/8C1D40/FFFFFF?text=Error&font=playfair'">
+                                <div class="flex-grow">
+                                    <h4 class="text-base font-semibold text-text truncate">${product.name}</h4>
+                                    <p class="text-sm text-lighttext">₹${product.price.toFixed(2)}</p>
+                                    <div class="flex items-center justify-between mt-2">
+                                        <!-- Quantity Controls -->
+                                        <div class="flex items-center border border-gray-300 rounded-md">
+                                            <button class="quantity-change-btn p-1 text-gray-600 hover:bg-gray-200 rounded-l-md transition-colors" data-id="${product.id}" data-change="-1">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                                            </button>
+                                            <span class="px-3 text-sm font-medium text-text">${cartItem.quantity}</span>
+                                            <button class="quantity-change-btn p-1 text-gray-600 hover:bg-gray-200 rounded-r-md transition-colors" data-id="${product.id}" data-change="1">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                            </button>
+                                        </div>
+                                        <!-- Remove Button -->
+                                        <button class="remove-from-cart-btn text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition-colors" data-id="${product.id}">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        cartItemsContainer.innerHTML += cartItemEl;
+                    });
+                }
+
+                // Update totals
+                cartTotalEl.innerText = `₹${total.toFixed(2)}`;
+                paymentTotalEl.innerText = total.toFixed(2); // Update payment page total
+                cartCountBadge.innerText = totalItems;
+
+                // Disable checkout if cart is empty
+                checkoutButton.disabled = cart.length === 0;
+                checkoutButton.classList.toggle('opacity-50', cart.length === 0);
+                checkoutButton.classList.toggle('cursor-not-allowed', cart.length === 0);
+
+
+                // Save to local storage
+                saveCartToStorage();
+            }
+
+            /**
+             * Renders the mock orders to the orders modal.
+             */
+            function renderOrders() {
+                if (ORDERS.length === 0) {
+                    ordersListContainer.innerHTML = `
+                        <div class="text-center py-10">
+                            <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <h3 class="mt-4 text-lg font-medium text-text">No orders yet</h3>
+                            <p class="mt-1 text-sm text-lighttext">Your past and pending orders will appear here.</p>
+                        </div>
+                    `;
+                } else {
+                    ordersListContainer.innerHTML = ''; // Clear existing
+                    ORDERS.forEach(order => {
+                        const statusColor = order.status === 'Delivered' ? 'text-green-600' : 'text-blue-600';
+                        const statusText = order.status === 'Arriving Soon' ? `Arriving by ${order.date}` : `Delivered on ${order.date}`;
+                        
+                        const orderCard = `
+                            <div class="bg-card rounded-xl shadow-lg overflow-hidden">
+                                <div class="p-4 bg-gray-50 border-b border-gray-200">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h3 class="text-lg font-semibold text-primary">Order #${order.id}</h3>
+                                        <span class="text-sm font-bold ${statusColor}">${order.status}</span>
+                                    </div>
+                                    <p class="text-sm text-lighttext">${statusText}</p>
+                                    <p class="text-lg font-semibold text-text mt-1">Total: ₹${order.total.toFixed(2)}</p>
+                                </div>
+                                <div class="p-4 space-y-3">
+                                    ${order.items.map(item => `
+                                        <div class="flex items-center space-x-3">
+                                            <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-cover rounded-md shadow-sm" onerror="this.src='https://placehold.co/100x100/8C1D40/FFFFFF?text=Error&font=playfair'">
+                                            <span class="text-sm text-text flex-grow truncate">${item.name}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                        ordersListContainer.innerHTML += orderCard;
+                    });
+                }
+            }
+
+            /**
+             * Adds an item to the cart or increments its quantity.
+             */
+            function addToCart(productId) {
+                const existingItem = cart.find(item => item.id === productId);
+
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    cart.push({ id: productId, quantity: 1 });
+                }
+
+                renderCart();
+                // Show a small confirmation
+                showAddedToCartMessage(productId);
+            }
+            
+            /**
+             * Shows a temporary "Added!" message on the button
+             */
+            function showAddedToCartMessage(productId) {
+                const button = productGrid.querySelector(`.add-to-cart-btn[data-id="${productId}"]`);
+                if (button) {
+                    const originalText = button.innerHTML;
+                    const originalClasses = button.className;
+
+                    button.innerHTML = `
+                        <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Added!
+                    `;
+                    button.classList.remove('bg-primary', 'hover:bg-opacity-90');
+                    button.classList.add('bg-green-500', 'hover:bg-green-600');
+                    button.disabled = true;
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.className = originalClasses; // Restore original classes
+                        button.disabled = false;
+                    }, 1500);
+                }
+            }
+
+            /**
+             * Updates the quantity of a cart item.
+             */
+            function updateCartQuantity(productId, change) {
+                const cartItem = cart.find(item => item.id === productId);
+                if (!cartItem) return;
+
+                cartItem.quantity += change;
+
+                if (cartItem.quantity <= 0) {
+                    // Remove item if quantity is 0 or less
+                    removeFromCart(productId);
+                } else {
+                    renderCart();
+                }
+            }
+
+            /**
+             * Removes an item from the cart.
+             */
+            function removeFromCart(productId) {
+                cart = cart.filter(item => item.id !== productId);
+                renderCart();
+            }
+
+            /**
+             * Toggles the visibility of the cart modal.
+             */
+            function toggleCartModal() {
+                const isHidden = cartModal.classList.contains('hidden');
+                
+                if (isHidden) {
+                    // Show modal
+                    cartModal.classList.remove('hidden');
+                    // Need a tiny delay for the 'hidden' removal to register before starting transition
+                    setTimeout(() => {
+                        cartPanel.classList.remove('translate-x-full');
+                    }, 10);
+                } else {
+                    // Hide modal
+                    cartPanel.classList.add('translate-x-full');
+                    // Wait for transition to end before hiding the overlay
+                    cartModal.addEventListener('transitionend', (e) => {
+                        // Ensure the transition is from the panel itself, not a child element
+                        if (e.propertyName === 'transform' && e.target === cartPanel) {
+                            cartModal.classList.add('hidden');
+                        }
+                    }, { once: true });
+                }
+            }
+
+            /**
+             * Toggles the visibility of the orders modal.
+             */
+            function toggleOrdersModal() {
+                const isHidden = ordersModal.classList.contains('hidden');
+                
+                if (isHidden) {
+                    // Show modal
+                    ordersModal.classList.remove('hidden');
+                    setTimeout(() => {
+                        ordersPanel.classList.remove('translate-x-full');
+                    }, 10);
+                } else {
+                    // Hide modal
+                    ordersPanel.classList.add('translate-x-full');
+                    ordersModal.addEventListener('transitionend', (e) => {
+                        if (e.propertyName === 'transform' && e.target === ordersPanel) {
+                            ordersModal.classList.add('hidden');
+                        }
+                    }, { once: true });
+                }
+            }
+
+            /**
+             * Saves the cart to localStorage.
+             */
+            function saveCartToStorage() {
+                localStorage.setItem('ecom_cart', JSON.stringify(cart));
+            }
+
+            /**
+             * Loads the cart from localStorage.
+             */
+            function loadCartFromStorage() {
+                const savedCart = localStorage.getItem('ecom_cart');
+                cart = savedCart ? JSON.parse(savedCart) : [];
+            }
+            
+            /**
+             * Generates star rating HTML.
+             */
+            function generateStars(rating) {
+                let stars = '';
+                for (let i = 1; i <= 5; i++) {
+                    // Use 'text-secondary' (gold) for filled stars
+                    const starClass = i <= rating ? 'text-secondary' : 'text-gray-300';
+                    stars += `<svg class="w-4 h-4 ${starClass}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>`;
+                }
+                return stars;
+            }
+            
+            /**
+             * Populates the product dropdown in the review section.
+             */
+            function populateReviewProducts() {
+                if (!reviewProductSelect) return;
+                PRODUCTS.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.id;
+                    option.textContent = product.name;
+                    reviewProductSelect.appendChild(option);
+                });
+            }
+
+            // --- Page Navigation Functions ---
+            function showMainStore() {
+                mainContent.classList.remove('hidden');
+                paymentPage.classList.add('hidden');
+                confirmationPage.classList.add('hidden');
+            }
+
+            function showPaymentPage() {
+                mainContent.classList.add('hidden');
+                paymentPage.classList.remove('hidden');
+                confirmationPage.classList.add('hidden');
+                window.scrollTo(0, 0); // Scroll to top
+            }
+
+            function showConfirmationPage() {
+                mainContent.classList.add('hidden');
+                paymentPage.classList.add('hidden');
+                confirmationPage.classList.remove('hidden');
+                window.scrollTo(0, 0); // Scroll to top
+            }
+
+            // --- 5. EVENT LISTENERS ---
+
+            // Open Cart
+            cartButton.addEventListener('click', toggleCartModal);
+
+            // Close Cart
+            closeCartButton.addEventListener('click', toggleCartModal);
+            cartModal.addEventListener('click', (e) => {
+                // Close if clicking on the overlay, but not the panel itself
+                if (e.target === cartModal) {
+                    toggleCartModal();
+                }
+            });
+
+            // Open Orders
+            ordersButton.addEventListener('click', toggleOrdersModal);
+
+            // Close Orders
+            closeOrdersButton.addEventListener('click', toggleOrdersModal);
+            ordersModal.addEventListener('click', (e) => {
+                // Close if clicking on the overlay, but not the panel itself
+                if (e.target === ordersModal) {
+                    toggleOrdersModal();
+                }
+            });
+
+            // Add to Cart (Event Delegation)
+            productGrid.addEventListener('click', (e) => {
+                const addToCartBtn = e.target.closest('.add-to-cart-btn');
+                if (addToCartBtn) {
+                    const productId = parseInt(addToCartBtn.dataset.id);
+                    addToCart(productId);
+                }
+            });
+
+            // Manage Cart Items (Event Delegation)
+            cartItemsContainer.addEventListener('click', (e) => {
+                // Quantity Change
+                const quantityBtn = e.target.closest('.quantity-change-btn');
+                if (quantityBtn) {
+                    const productId = parseInt(quantityBtn.dataset.id);
+                    const change = parseInt(quantityBtn.dataset.change);
+                    updateCartQuantity(productId, change);
+                    return; // Stop further execution
+                }
+                
+                // Remove Item
+                const removeBtn = e.target.closest('.remove-from-cart-btn');
+                if (removeBtn) {
+                    const productId = parseInt(removeBtn.dataset.id);
+                    removeFromCart(productId);
+                    return; // Stop further execution
+                }
+            });
+
+            // Handle Review Form Submission
+            if (reviewForm) {
+                reviewForm.addEventListener('submit', (e) => {
+                    e.preventDefault(); // Prevent actual form submission
+                    const selectedProduct = reviewProductSelect.value;
+                    const selectedRating = document.getElementById('review-rating').value;
+                    
+                    if (!selectedProduct || !selectedRating) {
+                        reviewMessage.textContent = 'Please select a product and a rating.';
+                        reviewMessage.classList.remove('text-green-600');
+                        reviewMessage.classList.add('text-red-600');
+                    } else {
+                        // Here you would normally send the review to a server.
+                        // For now, just show a success message.
+                        reviewMessage.textContent = 'Thank you for your review!';
+                        reviewMessage.classList.add('text-green-600');
+                        reviewMessage.classList.remove('text-red-600');
+                        
+                        // Clear the form
+                        reviewForm.reset();
+                    }
+                    
+                    // Hide the message after 3 seconds
+                    setTimeout(() => {
+                        reviewMessage.textContent = '';
+                    }, 3000);
+                });
+            }
+
+            // --- Checkout Flow Listeners ---
+
+            // 1. Proceed to Checkout
+            checkoutButton.addEventListener('click', () => {
+                if (cart.length === 0) return;
+                toggleCartModal(); // Close the cart
+                showPaymentPage(); // Show the payment page
+            });
+
+            // 2. Go Back from Payment
+            paymentBackButton.addEventListener('click', () => {
+                showMainStore();
+            });
+
+            // 3. Pay Now
+            paymentForm.addEventListener('submit', (e) => {
+                e.preventDefault(); // Prevent form submission
+                
+                // Show loading spinner
+                loadingMessage.textContent = "Processing Payment...";
+                loadingOverlay.classList.remove('hidden');
+
+                // Simulate payment processing
+                setTimeout(() => {
+                    // Hide loading spinner
+                    loadingOverlay.classList.add('hidden');
+                    
+                    // Show confirmation page
+                    showConfirmationPage();
+                    
+                    // Clear the cart
+                    cart = [];
+                    renderCart(); // This also saves the empty cart to localStorage
+
+                    // After 3 seconds, go back to the main store
+                    setTimeout(() => {
+                        showMainStore();
+                    }, 3000);
+
+                }, 2000); // 2-second fake processing time
+            });
+
+
+            // --- 6. INITIALIZATION ---
+            loadCartFromStorage();
+            renderProducts();
+            renderCart();
+            renderOrders();
+            populateReviewProducts();
+        });
+    </script>
+</body>
+</html>
